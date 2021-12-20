@@ -3,7 +3,6 @@
 
 /* Potential TODO
  * Allow for local emoji to be displayed
- * Allow for local versions of user icons to be displayed
  * Allow for local user/channel data to fill in ids
  * General markdown support
  * Other search options (filters/non-exact query)
@@ -14,10 +13,14 @@ const fs = require('fs');
 
 // Icon start path
 const cdn = "https://cdn.discordapp.com/";
-const mediapath = ""
+const channel = ""
+const local = "file://" + __dirname + "/fetch/" + channel + '/';
+
+const avatars = fs.existsSync(__dirname + "/fetch/" + channel + "/avatars");
+const attachments = fs.existsSync(__dirname + "/fetch/" + channel + "/attachments");
 
 // Read message data from local file
-var messageData = JSON.parse(fs.readFileSync('omori_spoilers.json', 'utf8'));
+var messageData = JSON.parse(fs.readFileSync('fetch/' + channel + '/messages.json', 'utf8'));
 
 var messages = document.getElementById('messages');
 var searchoutput = document.getElementById('searchout');
@@ -84,7 +87,7 @@ function addMessage(index, dst = messages, jumpable = false) {
     }
 
     /* Attachment field
-     * Loop through message attachments and add the appropriate type from local source
+     * Loop through message attachments and add the appropriate type
      */
     if (m['attachments'].length && !jumpable) {
         m['attachments'].forEach(attachment => {
@@ -93,17 +96,22 @@ function addMessage(index, dst = messages, jumpable = false) {
 
             // Get main type of content (e.g. video/audio/image)
             if (attachment['content_type']) type = attachment['content_type'].split('/')[0];
+            else type = "image"; // Sure, good enough
 
             // Handle type
             if (type == "image") {
                 att = document.createElement("img");
-                att.src = "file://" + mediapath + encodeURIComponent(encodeURIComponent(attachment['url']));
+
+                if (attachments) att.src = local + 'attachments/' + encodeURIComponent(encodeURIComponent(attachment['url']));
+                else att.src = attachment['url'];
             } else if (type == "video" || type == "audio") {
                 att = document.createElement(type);
                 att.setAttribute("controls", "");
     
                 var media = document.createElement("source");
-                media.src = "file://" + mediapath + encodeURIComponent(encodeURIComponent(attachment['url']));
+                
+                if (attachments) media.src = local + 'attachments/' + encodeURIComponent(encodeURIComponent(attachment['url']));
+                else media.src = attachment['url'];
     
                 media.type = attachment['content_type'];
                 att.appendChild(media);
@@ -170,8 +178,14 @@ function addMessage(index, dst = messages, jumpable = false) {
         var reficon = document.createElement("img");
         var refname = document.createElement("h4");
         var reftext = document.createElement("p");
+        
+        if (avatars) {
+            reficon.src = local + "avatars/" + ref['author']['id'] + ".webp";
+        } else {
+            if (ref['author']['avatar']) reficon.src = cdn + "avatars/" + ref['author']['id'] + "/" + ref['author']['avatar'] + ".webp?size=80";
+            else reficon.src = cdn + "embed/avatars/" + ref['author']['discriminator'] % 5 + ".png"
+        }
 
-        reficon.src = cdn + "avatars/" + ref['author']['id'] + "/" + ref['author']['avatar'] + ".webp?size=80";
         reficon.width = 24;
 
         refname.textContent = ref['author']['username'];
@@ -200,7 +214,14 @@ function addMessage(index, dst = messages, jumpable = false) {
     ts = m['timestamp'];
     time.textContent = ts.substring(0, 10) + " " + ts.substring(11, 23);
 
-    icon.src = cdn + "avatars/" + m['author']['id'] + "/" + m['author']['avatar'] + ".webp?size=80";
+    if (avatars) {
+        icon.src = local + "avatars/" + m['author']['id'] + ".webp";
+    } else {
+        // Get remote avatar if not fetched (custom/default)
+        if (m['author']['avatar']) icon.src = cdn + "avatars/" + m['author']['id'] + "/" + m['author']['avatar'] + ".webp?size=80";
+        else icon.src = cdn + "embed/avatars/" + m['author']['discriminator'] % 5 + ".png"
+    }
+
     icon.width = 48;
 
     icon.className = "logo";

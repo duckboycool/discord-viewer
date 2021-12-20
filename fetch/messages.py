@@ -38,8 +38,8 @@ while not(NUM) or len(messages) < NUM:
 	# ID to start fetching from
 	next_id = messages[0]['id'] if messages else 0
 
-	# Request for 50 messages
-	r = requests.get(f"https://discord.com/api/v9/channels/{channel}/messages?after={next_id}&limit=50", headers={"authorization": TOKEN})
+	# Request for 100 messages
+	r = requests.get(f"https://discord.com/api/v9/channels/{channel}/messages?after={next_id}&limit=100", headers={"authorization": TOKEN})
 
 	if not r.ok:
 		print(f"Failed with code {r.status_code}, retrying...")
@@ -65,4 +65,4 @@ if not os.path.isdir(f"{sys.path[0]}/{NAME}"):
 	os.mkdir(f"{sys.path[0]}/{NAME}")
 
 with open(f"{sys.path[0]}/{NAME}/messages.json", "w") as file:
-    json.dump(messages, file)
+    json.dump(messages[::-1], file)
