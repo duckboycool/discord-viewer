@@ -1,0 +1,73 @@
+/* styles.css */
+h1 {
+    text-align: center;
+    margin-right: 520px;
+}
+
+.logo {
+    display: inline;
+    float: left;
+    clear: left;
+}
+
+h3 {
+    display: inline;
+    vertical-align: top;
+    padding-left: 10px;
+}
+
+h5 {
+    display: inline;
+    vertical-align: center;
+    padding-left: 10px;
+    color: #888;
+}
+
+.reply {
+    display: inline;
+    padding-right: 8px;
+}
+
+.content {
+    margin-top: 8px;
+    margin-bottom: 0px;
+    padding-left: 58px;
+}
+
+.attachment {
+    padding: 8px;
+    display: block;
+}
+
+.message {
+    padding: 8px;
+}
+.message:hover {
+    background-color: #32353b;
+}
+
+.reply:hover {
+    background-color: #32353b;
+}
+
+#search {
+    padding: 32px;
+    height: 100%;
+    width: 440px;
+    position: fixed;
+    overflow-x: scroll;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: #3f4247;
+}
+
+#messages {
+    margin-right: 520px;
+}
+
+body {
+    color: #ddd;
+    background-color: #36393f;
+    font-family: Arial, Helvetica, sans-serif;
+}
