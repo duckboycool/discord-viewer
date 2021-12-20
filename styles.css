@@ -1,21 +1,26 @@
 /* styles.css */
+
+/* Title header */
 h1 {
     text-align: center;
     margin-right: 520px;
 }
 
+/* User logos */
 .logo {
     display: inline;
     float: left;
     clear: left;
 }
 
+/* User names */
 h3 {
     display: inline;
     vertical-align: top;
     padding-left: 10px;
 }
 
+/* Timestamps */
 h5 {
     display: inline;
     vertical-align: center;
@@ -23,22 +28,26 @@ h5 {
     color: #888;
 }
 
+/* Reply messages */
 .reply {
     display: inline;
     padding-right: 8px;
 }
 
+/* Message text */
 .content {
     margin-top: 8px;
     margin-bottom: 0px;
     padding-left: 58px;
 }
 
+/* Message attachments */
 .attachment {
     padding: 8px;
     display: block;
 }
 
+/* Whole message box */
 .message {
     padding: 8px;
 }
@@ -50,6 +59,17 @@ h5 {
     background-color: #32353b;
 }
 
+/* Mention styles in content */
+.mention {
+    background-color: #414675;
+    border-radius: 2px;
+    padding: 2px;
+}
+.mention:hover {
+    background-color: #5865f2;
+}
+
+/* Search sidebar */
 #search {
     padding: 32px;
     height: 100%;
@@ -62,10 +82,12 @@ h5 {
     background-color: #3f4247;
 }
 
+/* Message box */
 #messages {
     margin-right: 520px;
 }
 
+/* Defaults */
 body {
     color: #ddd;
     background-color: #36393f;

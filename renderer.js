@@ -21,6 +21,7 @@ const attachments = fs.existsSync(__dirname + "/fetch/" + channel + "/attachment
 
 // Read message data from local file
 var messageData = JSON.parse(fs.readFileSync('fetch/' + channel + '/messages.json', 'utf8'));
+var mentionData = JSON.parse(fs.readFileSync('fetch/' + channel + '/mentions.json', 'utf8'));
 
 var messages = document.getElementById('messages');
 var searchoutput = document.getElementById('searchout');
@@ -48,13 +49,26 @@ jump = (event) => {
         }
     }
 
-    while (i <= Math.min((j + 20), messageData.length)) {
+    while (i < Math.min((j + 20), messageData.length)) {
         addMessage(i);
         i++;
     }
 
     messages.childNodes[j + reps].scrollIntoView();
 };
+
+/* Function that takes in message content and returns a list of nodes
+ * Nodes are separated by styling, currently only mentions
+ */
+function parse(content) {
+    const mentions = /<([@#])!?(\d+)>/g;
+
+    [...content.matchAll(mentions)].forEach(match => {
+        content = content.slice(0, match.index) + "<span class='mention'>" + match[1] + mentionData[match[2]]["name"] + "</span>" + content.slice(match.index + match[0].length);
+    });
+
+    return content;
+}
 
 /* Function that adds a message to the list of nodes in an element
  * Currently nodes are never removed and stay loaded
@@ -83,7 +97,7 @@ function addMessage(index, dst = messages, jumpable = false) {
 
     // Message content field
     if (m['content']) {
-        text.textContent = m['content'];
+        text.innerHTML = parse(m['content']);
     }
 
     /* Attachment field
