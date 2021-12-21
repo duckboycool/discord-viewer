@@ -3,8 +3,6 @@
 
 /* Potential TODO
  * Allow for local emoji to be displayed
- * Allow for local user/channel data to fill in ids
- * General markdown support
  * Other search options (filters/non-exact query)
  */
 
@@ -18,10 +16,11 @@ const local = "file://" + __dirname + "/fetch/" + channel + '/';
 
 const avatars = fs.existsSync(__dirname + "/fetch/" + channel + "/avatars");
 const attachments = fs.existsSync(__dirname + "/fetch/" + channel + "/attachments");
+const mentions = fs.existsSync(__dirname + "/fetch/" + channel + "/mentions.json");
 
 // Read message data from local file
 var messageData = JSON.parse(fs.readFileSync('fetch/' + channel + '/messages.json', 'utf8'));
-var mentionData = JSON.parse(fs.readFileSync('fetch/' + channel + '/mentions.json', 'utf8'));
+if (mentions) var mentionData = JSON.parse(fs.readFileSync('fetch/' + channel + '/mentions.json', 'utf8'));
 
 var messages = document.getElementById('messages');
 var searchoutput = document.getElementById('searchout');
@@ -58,14 +57,44 @@ jump = (event) => {
 };
 
 /* Function that takes in message content and returns a list of nodes
- * Nodes are separated by styling, currently only mentions
+ * Nodes are separated by styling
+ * Markdown does not format correctly in all cases, and does not support quotes,
+ * multiline code blocks, or role mentions
  */
 function parse(content) {
-    const mentions = /<([@#])!?(\d+)>/g;
+    // Pain
+    const mention = /&lt;([@#])!?(\d+?)&gt;/g;
+    const italic = /((?<!\\)[*_])([^\n]+?)(\1)/g;
+    const bold = /(?<!\\)\*(?<!\\)\*([^\n]+?)(?<!\\)\*\*/g;
+    const underline = /(?<!\\)_(?<!\\)_([^\n]+?)(?<!\\)__/g;
+    const strike = /(?<!\\)~~([^\n]+?)(?<!\\)~~/g;
+    const code = /((?<!\\)\`?\`)([^\n]+?)(\1)/g;
 
-    [...content.matchAll(mentions)].forEach(match => {
-        content = content.slice(0, match.index) + "<span class='mention'>" + match[1] + mentionData[match[2]]["name"] + "</span>" + content.slice(match.index + match[0].length);
+    const codeescape = /(?<=<code>)[^<]+(?=<\/code>)/g;
+    const escape = /\\([$-/:-?{-~!"^_`\[\]\\])/g;
+
+    content = content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+    if (mentions) {
+        [...content.matchAll(mention)].reverse().forEach(match => {
+            var m = mentionData[match[2]];
+            if (m) content = content.slice(0, match.index) + "<span class='mention'>" + match[1] + mentionData[match[2]]["name"] + "</span>" + content.slice(match.index + match[0].length);
+            else content = content.slice(0, match.index) + "<span class='mention'>&lt;" + match[1] + match[2] + "&gt;</span>" + content.slice(match.index + match[0].length);
+        });
+    }
+
+    content = content.replaceAll(code, "<code>$2</code>");
+
+    [...match = content.matchAll(codeescape)].reverse().forEach(match => {
+        content = content.slice(0, match.index) + match[0].replaceAll(/([^\p{L}\d\s@#])/gu, "\\$1") + content.slice(match.index + match[0].length);
     });
+
+    content = content.replaceAll(bold, "<b>$1</b>");
+    content = content.replaceAll(underline, "<u>$1</u>");
+    content = content.replaceAll(strike, "<s>$1</s>");
+    content = content.replaceAll(italic, "<i>$2</i>");
+
+    content = content.replaceAll(escape, "$1");
 
     return content;
 }
@@ -206,7 +235,8 @@ function addMessage(index, dst = messages, jumpable = false) {
 
         reftext.textContent = ref['content'];
 
-        reficon.className = 'reply';
+        reficon.classList.add('reply');
+        reficon.classList.add('logo');
         refname.className = 'reply';
         reftext.className = 'reply';
 

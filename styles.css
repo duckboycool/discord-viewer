@@ -1,9 +1,16 @@
 /* styles.css */
 
-/* Title header */
+/* Title and subtitle header */
 h1 {
     text-align: center;
+    margin-bottom: 0px;
     margin-right: 520px;
+}
+h2 {
+    text-align: center;
+    margin-top: 0px;
+    margin-right: 520px;
+    color: #888;
 }
 
 /* User logos */
@@ -11,6 +18,8 @@ h1 {
     display: inline;
     float: left;
     clear: left;
+    border-radius: 25%;
+    margin-bottom: 4px;
 }
 
 /* User names */
@@ -28,12 +37,6 @@ h5 {
     color: #888;
 }
 
-/* Reply messages */
-.reply {
-    display: inline;
-    padding-right: 8px;
-}
-
 /* Message text */
 .content {
     margin-top: 8px;
@@ -47,16 +50,46 @@ h5 {
     display: block;
 }
 
+/* Message embeds */
+.embed {
+    padding: 8px;
+}
+
 /* Whole message box */
 .message {
-    padding: 8px;
+    margin-top: 4px;
+    padding: 6px;
+    border-radius: 4px;
+    clear: both;
+    min-height: 48px;
+    white-space: pre-wrap;
 }
 .message:hover {
     background-color: #32353b;
 }
 
+/* Reply messages */
+.reply {
+    display: inline;
+    margin-left: 4px;
+    padding: 2px;
+    padding-top: 8px;
+}
 .reply:hover {
     background-color: #32353b;
+}
+
+div.reply {
+    float: left;
+    clear: left;
+    border-radius: 4px;
+}
+
+.reply.logo {
+    display: inline-block;
+    vertical-align: top;
+    padding-top: 0px;
+    margin-top: 0px;
 }
 
 /* Mention styles in content */
@@ -67,6 +100,13 @@ h5 {
 }
 .mention:hover {
     background-color: #5865f2;
+}
+
+/* Code style */
+code {
+    background-color: #2f3136;
+    padding: 2px;
+    border-radius: 2px;
 }
 
 /* Search sidebar */
