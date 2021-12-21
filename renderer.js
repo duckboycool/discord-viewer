@@ -2,7 +2,7 @@
 // be executed in the renderer process for that window.
 
 /* Potential TODO
- * Allow for local emoji to be displayed
+ * Allow for local embeds to be displayed
  * Other search options (filters/non-exact query)
  */
 
@@ -17,6 +17,7 @@ const local = "file://" + __dirname + "/fetch/" + channel + '/';
 const avatars = fs.existsSync(__dirname + "/fetch/" + channel + "/avatars");
 const attachments = fs.existsSync(__dirname + "/fetch/" + channel + "/attachments");
 const mentions = fs.existsSync(__dirname + "/fetch/" + channel + "/mentions.json");
+const emojis = fs.existsSync(__dirname + "/fetch/" + channel + "/emojis");
 
 // Read message data from local file
 var messageData = JSON.parse(fs.readFileSync('fetch/' + channel + '/messages.json', 'utf8'));
@@ -61,9 +62,10 @@ jump = (event) => {
  * Markdown does not format correctly in all cases, and does not support quotes,
  * multiline code blocks, or role mentions
  */
-function parse(content) {
+function parse(content, jumpable = false) {
     // Pain
     const mention = /&lt;([@#])!?(\d+?)&gt;/g;
+    const emoji = /&lt;a?:[^\s:]+:(\d+)&gt;/g;
     const italic = /((?<!\\)[*_])([^\n]+?)(\1)/g;
     const bold = /(?<!\\)\*(?<!\\)\*([^\n]+?)(?<!\\)\*\*/g;
     const underline = /(?<!\\)_(?<!\\)_([^\n]+?)(?<!\\)__/g;
@@ -73,6 +75,8 @@ function parse(content) {
     const codeescape = /(?<=<code>)[^<]+(?=<\/code>)/g;
     const escape = /\\([$-/:-?{-~!"^_`\[\]\\])/g;
 
+    const url = /https?:\/\/\S+(\.\S+)+\b/g;
+
     content = content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
     if (mentions) {
@@ -80,6 +84,13 @@ function parse(content) {
             var m = mentionData[match[2]];
             if (m) content = content.slice(0, match.index) + "<span class='mention'>" + match[1] + mentionData[match[2]]["name"] + "</span>" + content.slice(match.index + match[0].length);
             else content = content.slice(0, match.index) + "<span class='mention'>&lt;" + match[1] + match[2] + "&gt;</span>" + content.slice(match.index + match[0].length);
+        });
+    }
+
+    if (emojis) {
+        [...content.matchAll(emoji)].reverse().forEach(match => {
+            if (content.length == match[0].length) content = "<img src='" + local + "emojis/" + match[1]+ ".webp' class='emoji'>"
+            else content = content.slice(0, match.index) + "<img src='" + local + "emojis/" + match[1]+ ".webp' class='emoji' inline=1>" + content.slice(match.index + match[0].length);
         });
     }
 
@@ -93,6 +104,12 @@ function parse(content) {
     content = content.replaceAll(underline, "<u>$1</u>");
     content = content.replaceAll(strike, "<s>$1</s>");
     content = content.replaceAll(italic, "<i>$2</i>");
+
+    if (!jumpable) {
+        [...match = content.matchAll(url)].reverse().forEach(match => {
+            content = content.slice(0, match.index) + "<a href='" + match[0] + "' target='_blank'>" + match[0] + "</a>" + content.slice(match.index + match[0].length);
+        });
+    }
 
     content = content.replaceAll(escape, "$1");
 
@@ -233,7 +250,7 @@ function addMessage(index, dst = messages, jumpable = false) {
 
         refname.textContent = ref['author']['username'];
 
-        reftext.textContent = ref['content'];
+        reftext.innerHTML = parse(ref['content'], true);
 
         reficon.classList.add('reply');
         reficon.classList.add('logo');
