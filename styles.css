@@ -30,6 +30,25 @@ h2 {
     width: 18px;
 }
 
+/* Reactions */
+.react {
+    margin-left: 12px;
+    padding: 6px;
+    background-color: #2f3136;
+    border-radius: 20%;
+    border-width: 1px;
+}
+span.react:hover {
+    background-color: #36393f;
+    border-style: solid;
+    border-color: #5e6165;
+    padding: 5px;
+}
+.reactionCount {
+    color: #bbb;
+    margin-left: 6px;
+}
+
 /* User names */
 h3 {
     display: inline;

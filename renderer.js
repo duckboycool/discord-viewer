@@ -11,7 +11,7 @@ const fs = require('fs');
 
 // Icon start path
 const cdn = "https://cdn.discordapp.com/";
-const channel = ""
+const channel = "" // Set channel
 const local = "file://" + __dirname + "/fetch/" + channel + '/';
 
 const avatars = fs.existsSync(__dirname + "/fetch/" + channel + "/avatars");
@@ -190,7 +190,7 @@ function addMessage(index, dst = messages, jumpable = false) {
         });
     }
 
-    /* Attachment field
+    /* Embed field
      * Loop through message embeds and add the appropriate type from remote source
      * Images/gifs only currently
      */
@@ -267,6 +267,38 @@ function addMessage(index, dst = messages, jumpable = false) {
 
         // Make reply jumpable
         replied.addEventListener("click", jump);
+    }
+
+    /* Reaction field
+     * Shows reaction emoji and counts on current message below
+     */
+    if (m['reactions'] && !jumpable) {
+        m['reactions'].forEach(reaction => {
+            var react = document.createElement("span");
+            console.log(react);
+
+            var emj = document.createElement("img");
+            if (reaction['emoji']['id']) {
+                emj.src = local + "emojis/" + reaction['emoji']['id'] + ".webp";
+                emj.width = 18;
+            }
+            else {
+                emj = document.createElement("span");
+                emj.textContent = reaction['emoji']['name'];
+            };
+
+            var count = document.createElement("span");
+
+            count.textContent = reaction['count'];
+            count.className = "reactionCount"
+
+            react.appendChild(emj);
+            react.appendChild(count);
+
+            react.className = "react";
+
+            content.appendChild(react);
+        });
     }
 
     // Set name, pfp, and time (UTC only currently)
