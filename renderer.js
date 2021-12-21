@@ -28,13 +28,11 @@ var searchoutput = document.getElementById('searchout');
 
 // Event to jump to the associated message
 jump = (event) => {
-    var id = event.target.id;
-
-    if (id == '') {
-        id = event.target.parentNode.id;
-    }
-    if (id == '') {
-        id = event.target.parentNode.parentNode.id;
+    // Get get ID from current node or nearest parent with ID
+    var target = event.target;
+    var id;
+    while (!(id = target.id)) {
+        target = target.parentNode;
     }
 
     var reps = 1;
@@ -70,10 +68,11 @@ function parse(content, jumpable = false) {
     const bold = /(?<!\\)\*(?<!\\)\*([^\n]+?)(?<!\\)\*\*/g;
     const underline = /(?<!\\)_(?<!\\)_([^\n]+?)(?<!\\)__/g;
     const strike = /(?<!\\)~~([^\n]+?)(?<!\\)~~/g;
+    const spoiler = /(?<!\\)\|\|([^\n]+?)(?<!\\)\|\|/g
     const code = /((?<!\\)\`?\`)([^\n]+?)(\1)/g;
 
     const codeescape = /(?<=<code>)[^<]+(?=<\/code>)/g;
-    const escape = /\\([$-/:-?{-~!"^_`\[\]\\])/g;
+    const escape = /\\([$-/:-?{-~!"^_`\[\]\\@#])/g;
 
     const url = /https?:\/\/\S+(\.\S+)+\b/g;
 
@@ -97,12 +96,15 @@ function parse(content, jumpable = false) {
     content = content.replaceAll(code, "<code>$2</code>");
 
     [...match = content.matchAll(codeescape)].reverse().forEach(match => {
-        content = content.slice(0, match.index) + match[0].replaceAll(/([^\p{L}\d\s@#])/gu, "\\$1") + content.slice(match.index + match[0].length);
+        content = content.slice(0, match.index) + match[0].replaceAll(/([^\p{L}\d\s])/gu, "\\$1") + content.slice(match.index + match[0].length);
     });
+
+    content = content.replaceAll(/(?<!\\)((@everyone)|(@here))/g, "<span class='mention'>$1</span>");
 
     content = content.replaceAll(bold, "<b>$1</b>");
     content = content.replaceAll(underline, "<u>$1</u>");
     content = content.replaceAll(strike, "<s>$1</s>");
+    content = content.replaceAll(spoiler, "<span class='spoiler' id='event-needed'>$1</span>")
     content = content.replaceAll(italic, "<i>$2</i>");
 
     if (!jumpable) {
@@ -275,12 +277,12 @@ function addMessage(index, dst = messages, jumpable = false) {
     if (m['reactions'] && !jumpable) {
         m['reactions'].forEach(reaction => {
             var react = document.createElement("span");
-            console.log(react);
 
             var emj = document.createElement("img");
             if (reaction['emoji']['id']) {
                 emj.src = local + "emojis/" + reaction['emoji']['id'] + ".webp";
                 emj.width = 18;
+                emj.className = 'emoji';
             }
             else {
                 emj = document.createElement("span");
@@ -328,6 +330,16 @@ function addMessage(index, dst = messages, jumpable = false) {
     if (jumpable) {
         message.id = m['id'];
         message.addEventListener("click", jump);
+    }
+
+    // Add spoiler clear event if needed
+    var spoil = document.getElementById("event-needed");
+    if (spoil) {
+        // Don't enable spoiler click on jumpable messages
+        if (!jumpable) spoil.addEventListener("click", spoiler => {
+            spoiler.path[0].classList.add("cleared");
+        });
+        spoil.id = '';
     }
 }
 

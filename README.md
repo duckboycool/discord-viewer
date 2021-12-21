@@ -9,7 +9,7 @@ This viewer is not a client, and you cannot interact in any direct way with serv
 * Basic UI similar to the discord client's dark mode.
 * Support for video, image, and audio attachments.
 * Support for direct image/gif embeds.
-* Semi-support for basic markdown, including user and channel mention highlighting.
+* Semi-support for discord markdown, including user/channel mention highlighting and spoiler tags.
 * Support for custom emoji.
 * Support for user logos and message timestamps.
 * Support for reactions and message replies.
