@@ -3,5 +3,6 @@ node_modules
 fetch/token.txt
 fetch/*/
 !fetch/sample
+!fetch/sample/*.json
 __pycache__
 *.pyc
