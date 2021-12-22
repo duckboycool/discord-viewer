@@ -1,0 +1,19 @@
+{
+  "name": "discord-viewer",
+  "version": "1.0.0",
+  "description": "Basic offline discord viewer that reads from local message and asset data.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "discord"
+  ],
+  "author": "duckboycool",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^16.0.5"
+  }
+}

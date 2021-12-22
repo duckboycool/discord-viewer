@@ -1,5 +1,4 @@
 node_modules
-*.json
 fetch/token.txt
 fetch/*/
 !fetch/sample
