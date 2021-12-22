@@ -31,17 +31,22 @@ for message in messages:
     if message['author']['id'] not in avatars:
         for retry in range(3, -1, -1):
             if message['author']['avatar']:
-                r = requests.get(f"https://cdn.discordapp.com/avatars/{message['author']['id']}/{message['author']['avatar']}.webp?size=80")
-            
+                # Try once to get gif, can't tell if animated
+                if retry == 3:
+                    r = requests.get(f"https://cdn.discordapp.com/avatars/{message['author']['id']}/{message['author']['avatar']}.gif?size=80")
+
+                if retry < 3 or r.status_code == 415:
+                    r = requests.get(f"https://cdn.discordapp.com/avatars/{message['author']['id']}/{message['author']['avatar']}.webp{'?size=80' if retry > 1 else ''}")
+
             else:
-                # Get correct defautl avatar if avatar is null
+                # Get correct default avatar if avatar is null
                 r = requests.get(f"https://cdn.discordapp.com/embed/avatars/{int(message['author']['discriminator']) % 5}.png?size=80")
 
             # Retry on fail
             if not r.ok:
                 if retry:
                     print(f"Failed to get {message['author']['id']} with code {r.status_code}, retrying {retry} time(s)...")
-                    time.sleep(0.5)
+                    time.sleep(3)
                 
                 else:
                     print("Failed, continuing to next avatar")

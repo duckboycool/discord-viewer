@@ -11,11 +11,12 @@ const fs = require('fs');
 
 // Icon start path
 const cdn = "https://cdn.discordapp.com/";
-const channel = "" // Set channel
+const channel = "sample" // Set channel
 const local = "file://" + __dirname + "/fetch/" + channel + '/';
 
 const avatars = fs.existsSync(__dirname + "/fetch/" + channel + "/avatars");
 const attachments = fs.existsSync(__dirname + "/fetch/" + channel + "/attachments");
+const embeds = fs.existsSync(__dirname + "/fetch/" + channel + "/embeds");
 const mentions = fs.existsSync(__dirname + "/fetch/" + channel + "/mentions.json");
 const emojis = fs.existsSync(__dirname + "/fetch/" + channel + "/emojis");
 
@@ -62,8 +63,8 @@ jump = (event) => {
  */
 function parse(content, jumpable = false) {
     // Pain
-    const mention = /&lt;([@#])!?(\d+?)&gt;/g;
-    const emoji = /&lt;a?:[^\s:]+:(\d+)&gt;/g;
+    const mention = /(?<!\\)&lt;([@#])!?(\d+?)&gt;/g;
+    const emoji = /(?<!\\)&lt;a?:[^\s:]+:(\d+)&gt;/g;
     const italic = /((?<!\\)[*_])([^\n]+?)(\1)/g;
     const bold = /(?<!\\)\*(?<!\\)\*([^\n]+?)(?<!\\)\*\*/g;
     const underline = /(?<!\\)_(?<!\\)_([^\n]+?)(?<!\\)__/g;
@@ -77,6 +78,12 @@ function parse(content, jumpable = false) {
     const url = /https?:\/\/\S+(\.\S+)+\b/g;
 
     content = content.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    
+    content = content.replaceAll(code, "<code>$2</code>");
+
+    [...match = content.matchAll(codeescape)].reverse().forEach(match => {
+        content = content.slice(0, match.index) + match[0].replaceAll(/([^\p{L}\d\s])/gu, "\\$1") + content.slice(match.index + match[0].length);
+    });
 
     if (mentions) {
         [...content.matchAll(mention)].reverse().forEach(match => {
@@ -92,12 +99,6 @@ function parse(content, jumpable = false) {
             else content = content.slice(0, match.index) + "<img src='" + local + "emojis/" + match[1]+ ".webp' class='emoji' inline=1>" + content.slice(match.index + match[0].length);
         });
     }
-
-    content = content.replaceAll(code, "<code>$2</code>");
-
-    [...match = content.matchAll(codeescape)].reverse().forEach(match => {
-        content = content.slice(0, match.index) + match[0].replaceAll(/([^\p{L}\d\s])/gu, "\\$1") + content.slice(match.index + match[0].length);
-    });
 
     content = content.replaceAll(/(?<!\\)((@everyone)|(@here))/g, "<span class='mention'>$1</span>");
 
@@ -184,9 +185,7 @@ function addMessage(index, dst = messages, jumpable = false) {
                 att.target = "_blank";
             }
             
-            att.width = Math.min(attachment['width'], 800);
-            if (attachment['height'] > 1000) att.width *= 1000/attachment['height'];
-            
+            if (attachment['width'] < 800) att.width = attachment['width'];
             att.className = "attachment";
             content.appendChild(att); 
         });
@@ -208,21 +207,29 @@ function addMessage(index, dst = messages, jumpable = false) {
                 emb.setAttribute("loop", "");
 
                 var media = document.createElement("source");
-                media.src = embed['video']['url'];
+                if (embeds) media.src = local + 'embeds/' + encodeURIComponent(encodeURIComponent(embed['video']['url']));
+                else media.src = embed['video']['url'];
 
                 media.type = "video/mp4";
                 emb.appendChild(media);
             } else if (type == "image") {
                 emb = document.createElement("img");
-                emb.src = embed['url'];
+                if (embeds) emb.src = local + 'embeds/' + encodeURIComponent(encodeURIComponent(embed['url']));
+                else emb.src = embed['url'];
+            } else {
+                emb = document.createElement("img");
+                if (embeds) {
+                    if (embed['thumbnail']) emb.src = local + 'embeds/' + encodeURIComponent(encodeURIComponent(embed['thumbnail']['url']));
+                    else if (embed['image']) emb.src = local + 'embeds/' + encodeURIComponent(encodeURIComponent(embed['image']['url']));
+                } else {
+                    if (embed['thumbnail']) emb.src = embed['thumbnail']['url'];
+                    else if (embed['image']) emb.src = embed['image']['url'];
+                }
             }
             
-            if (emb) {
-                if (embed['video']) {
-                    emb.width = Math.min(embed['video']['width'], 800);
-                } else {
-                    emb.width = Math.min(embed['thumbnail']['width'], 800);
-                }
+            if (emb.children.length || emb.src) {
+                if (embed['video'] && embed['video']['width'] < 800) emb.width = embed['video']['width'];
+                else if (embed['thumbnail'] && embed['thumbnail']['width'] < 800) emb.width = embed['thumbnail']['width'];
 
                 emb.className = "embed";
                 content.appendChild(emb);
